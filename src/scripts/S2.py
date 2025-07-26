@@ -6,11 +6,11 @@ from pymatgen.core import Composition
 from itertools import combinations
 from collections import defaultdict
 
-with open("keys/secrets.json") as f:
+with open("keys.json") as f:
     secrets = json.load(f)
 API_KEY = secrets["materials_project"]["api_key"]
 
-df = pd.read_csv("data/NaSICON_Dataset_14.csv")
+df = pd.read_csv("data/DS1.csv")
 
 M = {"Li", "Na", "K", "Rb", "Cs", "Mg", "Ca", "Al", "Zn", "Y"}
 
@@ -71,4 +71,4 @@ for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
             })
 
 pairs_df = pd.DataFrame(pairs)
-pairs_df.to_csv("data/NaSICON_Dataset_15.csv")
+pairs_df.to_csv("data/DS2.csv")

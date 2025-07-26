@@ -6,7 +6,7 @@ from pymatgen.core import Composition
 from itertools import combinations
 from collections import defaultdict
 
-with open("keys/secrets.json") as f:
+with open("keys.json") as f:
     secrets = json.load(f)
 API_KEY = secrets["materials_project"]["api_key"]
 
@@ -24,7 +24,7 @@ MU = {
     "Y": -3.40
 }
 
-df = pd.read_csv("data/NaSICON_Dataset_15.csv")
+df = pd.read_csv("data/DS2.csv")
 delEs = []
 delVs = []
 
@@ -49,4 +49,4 @@ for row in tqdm(df.itertuples(index=False), desc="Calculating Energies", total=l
 df["delta_E"] = delEs
 df["delta_V"] = delVs
 
-df.to_csv("data/NaSICON_Dataset_16.csv")
+df.to_csv("data/DS3.csv")

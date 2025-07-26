@@ -3,7 +3,7 @@ import pandas as pd
 from tqdm import tqdm
 import json
 
-with open("keys/secrets.json") as f:
+with open("keys.json") as f:
     secrets = json.load(f)
 API_KEY = secrets["materials_project"]["api_key"]
 
@@ -46,6 +46,6 @@ df = pd.DataFrame([{
 
 
 # df.to_pickle("data/NaSICON_Dataset_14.pkl")
-df.to_csv   ("data/NaSICON_Dataset_14.csv")
+df.to_csv   ("data/DS1.csv")
 
 print(f"Downloaded {len(df)} crystalline solids")
