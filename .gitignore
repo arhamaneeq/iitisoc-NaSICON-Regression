@@ -2,3 +2,4 @@
 data/*
 models/*
 keys.json
+docs/*.pdf
