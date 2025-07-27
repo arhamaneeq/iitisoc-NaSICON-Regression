@@ -31,6 +31,22 @@ def getMetals(charged_formula, discharged_formula, M):
     metals = [el.symbol for el in charged.keys() | discharged.keys() if el.symbol in M]
     return len(metals), "|".join(sorted(set(metals)))
 
+def normaliseCompositions(comp1, comp2, energy2, M, m2):
+    for el in comp1:
+        if el.symbol not in M and el in comp2:
+            k = comp1[el] / comp2[el]
+            break
+
+    else:
+        return comp2, energy2, m2
+
+    scaledComp2 = Composition({el: amt * k for el, amt in comp2.items()})
+    scaledEnergy2 = energy2 * k
+    scaled_m2 = m2 * k
+
+    return scaledComp2, scaledEnergy2, scaled_m2
+
+
 groups = defaultdict(list)
 
 for _, row in tqdm(df.iterrows(), total=len(df), desc="Grouping Materials"):
@@ -51,6 +67,8 @@ for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
     entries = sorted(entries, key = lambda x: x[2])
 
     for (mid1, f1, m1, e1), (mid2, f2, m2, e2) in combinations(entries, 2):
+        f2, e2, m2 = normaliseCompositions(Composition(f1), Composition(f2), e2, M, m2)
+
         _, dM = getMetals(f1, f2, M)
 
         if (m1 != m2):
