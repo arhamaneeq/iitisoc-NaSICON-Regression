@@ -31,14 +31,13 @@ def getMetals(charged_formula, discharged_formula, M):
     metals = [el.symbol for el in charged.keys() | discharged.keys() if el.symbol in M]
     return len(metals), "|".join(sorted(set(metals)))
 
-def normaliseCompositions(comp1, comp2, energy2, M, m2):
+def normaliseCompositions(comp1, comp2, energy2, m2):
     for el in comp1:
         if el.symbol not in M and el in comp2:
             k = comp1[el] / comp2[el]
             break
-
     else:
-        return comp2, energy2, m2
+        return comp2, energy2, m2 
 
     scaledComp2 = Composition({el: amt * k for el, amt in comp2.items()})
     scaledEnergy2 = energy2 * k
@@ -62,22 +61,25 @@ for _, row in tqdm(df.iterrows(), total=len(df), desc="Grouping Materials"):
         continue
 
 pairs = []
-
 for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
-    entries = sorted(entries, key = lambda x: x[2])
+    entries = sorted(entries, key=lambda x: x[2])  
 
     for (mid1, f1, m1, e1), (mid2, f2, m2, e2) in combinations(entries, 2):
-        f2, e2, m2 = normaliseCompositions(Composition(f1), Composition(f2), e2, M, m2)
+        comp1 = Composition(f1)
+        comp2 = Composition(f2)
 
-        _, dM = getMetals(f1, f2, M)
+        comp2_scaled, e2_scaled, m2_scaled = normaliseCompositions(comp1, comp2, e2, m2)
+        f2_scaled_str = comp2_scaled.formula
 
-        if (m1 != m2):
+        _, dM = getMetals(f1, f2_scaled_str, M)
+
+        if m1 != m2_scaled:
             pairs.append({
                 "framework": framework,
                 "charged_id": mid2,
-                "charged_formula": f2,
-                "charged_energy": e2,
-                "charged_m": m2,
+                "charged_formula": f2_scaled_str,
+                "charged_energy": e2_scaled,
+                "charged_m": m2_scaled,
 
                 "discharged_id": mid1,
                 "discharged_formula": f1,
@@ -85,8 +87,8 @@ for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
                 "discharged_m": m1,
 
                 "active_metals": dM,
-                "m_count_diff": m2 - m1
+                "m_count_diff": m2_scaled - m1
             })
 
 pairs_df = pd.DataFrame(pairs)
-pairs_df.to_csv("data/DS2.csv")
+pairs_df.to_csv("data/DS2.csv", index=False)
