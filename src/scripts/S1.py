@@ -39,7 +39,7 @@ df = pd.DataFrame([{
     #"nsites": m.nsites,
     #"elements": m.elements,
     "composition": m.composition_reduced,
-    "energy": m.energy_per_atom,
+    "energy_per_atom": m.energy_per_atom,
     #"volume": m.volume,
     #"is_stable": m.is_stable,
     #"dimensionality": m.dimensionality,

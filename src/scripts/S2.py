@@ -31,19 +31,18 @@ def getMetals(charged_formula, discharged_formula, M):
     metals = [el.symbol for el in charged.keys() | discharged.keys() if el.symbol in M]
     return len(metals), "|".join(sorted(set(metals)))
 
-def normaliseCompositions(comp1, comp2, energy2, m2):
+def normaliseCompositions(comp1, comp2, m2):
     for el in comp1:
         if el.symbol not in M and el in comp2:
             k = comp1[el] / comp2[el]
             break
     else:
-        return comp2, energy2, m2 
+        return comp2, m2 
 
     scaledComp2 = Composition({el: amt * k for el, amt in comp2.items()})
-    scaledEnergy2 = energy2 * k
     scaled_m2 = m2 * k
 
-    return scaledComp2, scaledEnergy2, scaled_m2
+    return scaledComp2, scaled_m2
 
 
 groups = defaultdict(list)
@@ -51,11 +50,11 @@ groups = defaultdict(list)
 for _, row in tqdm(df.iterrows(), total=len(df), desc="Grouping Materials"):
     mID = row["material_id"]
     formula = row["composition"]
-    energy = row["energy"]
+    energy_per_atom = row["energy_per_atom"]
 
     try:
         framework_formula, m_count = getFramework(formula)
-        groups[framework_formula].append((mID, formula, m_count, energy))
+        groups[framework_formula].append((mID, formula, m_count, energy_per_atom))
     except Exception as e:
         #print(f"Skipping {row['material_id']} ({formula}) due to parsing error: {e}")
         continue
@@ -68,26 +67,26 @@ for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
         comp1 = Composition(f1)
         comp2 = Composition(f2)
 
-        comp2_scaled, e2_scaled, m2_scaled = normaliseCompositions(comp1, comp2, e2, m2)
+        comp2_scaled, m2_scaled = normaliseCompositions(comp1, comp2, m2)
         f2_scaled_str = comp2_scaled.formula
 
         _, dM = getMetals(f1, f2_scaled_str, M)
 
-        if m1 != m2_scaled:
+        if m1 != m2_scaled: # and e1 == e2:
             pairs.append({
                 "framework": framework,
                 "charged_id": mid2,
                 "charged_formula": f2_scaled_str,
-                "charged_energy": e2_scaled,
                 "charged_m": m2_scaled,
 
                 "discharged_id": mid1,
                 "discharged_formula": f1,
-                "discharged_energy": e1,
                 "discharged_m": m1,
 
                 "active_metals": dM,
-                "m_count_diff": m2_scaled - m1
+                "m_count_diff": m2_scaled - m1,
+
+                "energy_per_atom": e1,
             })
 
 pairs_df = pd.DataFrame(pairs)
