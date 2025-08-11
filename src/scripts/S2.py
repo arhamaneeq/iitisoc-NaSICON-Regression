@@ -78,15 +78,16 @@ for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
                 "charged_id": mid2,
                 "charged_formula": f2_scaled_str,
                 "charged_m": m2_scaled,
+                "charged_energy_per_atom": e2,
 
                 "discharged_id": mid1,
                 "discharged_formula": f1,
                 "discharged_m": m1,
+                "discharged_energy_per_atom": e1,
 
                 "active_metals": dM,
                 "m_count_diff": m2_scaled - m1,
 
-                "energy_per_atom": e1,
             })
 
 pairs_df = pd.DataFrame(pairs)

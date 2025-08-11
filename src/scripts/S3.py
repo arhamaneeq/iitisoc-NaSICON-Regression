@@ -46,27 +46,30 @@ speCs = []
 speEs = []
 
 for row in tqdm(df.itertuples(index=False), desc="Calculating Energies", total=len(df)):
-    M = row.active_metals
+    metals = row.active_metals.split("|") if row.active_metals else []
     n = row.m_count_diff
 
     MM_host = Composition(row.discharged_formula).weight
 
-    if M not in MU:
+    if len(metals) != 1 or metals[0] not in MU:
         delVs.append(None)
         speCs.append(None)
         speEs.append(None)
         continue
 
-    E_charged = row.charged_energy * Composition(row.charged_formula).num_atoms
-    E_discharged = row.discharged_energy * Composition(row.discharged_formula).num_atoms
+    M = metals[0]
 
-    delV = - (E_charged - E_discharged + n * MU[M]) / (n)   # Volt
-    speC = (n * FARADAY * 1000) / (3600 * MM_host)            # mAh / g
-    speE = speC * delV                                      # mWh / g
+    E_charged = row.charged_energy_per_atom * Composition(row.charged_formula).num_atoms
+    E_discharged = row.discharged_energy_per_atom * Composition(row.discharged_formula).num_atoms
+
+    delV = - (E_charged - E_discharged + n * MU[M]) / n   # Volt
+    speC = (n * FARADAY * 1000) / (3600 * MM_host)        # mAh / g
+    speE = speC * delV                                    # mWh / g
 
     delVs.append(delV)
     speCs.append(speC)
     speEs.append(speE)
+
 
 df["specific_capacity"] = speCs
 df["delta_V"] = delVs
