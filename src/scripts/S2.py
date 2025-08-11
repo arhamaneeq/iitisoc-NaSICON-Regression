@@ -37,12 +37,12 @@ def normaliseCompositions(comp1, comp2, m2):
             k = comp1[el] / comp2[el]
             break
     else:
-        return comp2, m2 
+        return comp2, m2 , k
 
     scaledComp2 = Composition({el: amt * k for el, amt in comp2.items()})
     scaled_m2 = m2 * k
 
-    return scaledComp2, scaled_m2
+    return scaledComp2, scaled_m2, k
 
 
 groups = defaultdict(list)
@@ -67,27 +67,32 @@ for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
         comp1 = Composition(f1)
         comp2 = Composition(f2)
 
-        comp2_scaled, m2_scaled = normaliseCompositions(comp1, comp2, m2)
+        comp2_scaled, m2_scaled, k = normaliseCompositions(comp1, comp2, m2)
         f2_scaled_str = comp2_scaled.formula
 
         _, dM = getMetals(f1, f2_scaled_str, M)
 
-        if m1 != m2_scaled and (m2_scaled - m1 < 10): # and e1 == e2:
+        if m1 != m2_scaled and (m2_scaled - m1 < 10):
+            total_E_charged_scaled = (e2 * comp2.num_atoms) * k
+            total_E_discharged = e1 * comp1.num_atoms
+
             pairs.append({
                 "framework": framework,
+
                 "charged_id": mid2,
                 "charged_formula": f2_scaled_str,
                 "charged_m": m2_scaled,
                 "charged_energy_per_atom": e2,
+                "charged_energy_total_scaled": total_E_charged_scaled,
 
                 "discharged_id": mid1,
                 "discharged_formula": f1,
                 "discharged_m": m1,
                 "discharged_energy_per_atom": e1,
+                "discharged_energy_total": total_E_discharged,
 
                 "active_metals": dM,
                 "m_count_diff": m2_scaled - m1,
-
             })
 
 pairs_df = pd.DataFrame(pairs)

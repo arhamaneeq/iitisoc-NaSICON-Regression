@@ -67,8 +67,8 @@ for row in tqdm(df.itertuples(index=False), desc="Calculating Energies", total=l
     M = metals[0]
     n = row.m_count_diff * valence(M)
 
-    E_charged = row.charged_energy_per_atom * Composition(row.charged_formula).num_atoms
-    E_discharged = row.discharged_energy_per_atom * Composition(row.discharged_formula).num_atoms
+    E_charged = row.charged_energy_total_scaled
+    E_discharged = row.discharged_energy_total
 
     delV = - (E_charged - E_discharged - n * MU[M]) / n   # Volt
     speC = (n * FARADAY * 1000) / (3600 * MM_host)        # mAh / g
