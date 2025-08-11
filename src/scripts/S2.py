@@ -72,7 +72,7 @@ for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
 
         _, dM = getMetals(f1, f2_scaled_str, M)
 
-        if m1 != m2_scaled and (m2_scaled - m1 < 10):
+        if m1 != m2_scaled and (m2_scaled - m1 < 10) and (m2_scaled - m1 > 0):
             total_E_charged_scaled = (e2 * comp2.num_atoms) * k
             total_E_discharged = e1 * comp1.num_atoms
 
