@@ -5,6 +5,7 @@ import json
 from pymatgen.core import Composition
 from itertools import combinations
 from collections import defaultdict
+from pymatgen.core.periodic_table import Element
 
 with open("keys.json") as f:
     secrets = json.load(f)
@@ -39,6 +40,13 @@ MM = {                      # g / mol
     "Y": 88.906
 }
 
+def valence(symbol):
+    el = Element(symbol)
+    if el.oxidation_states:
+        return el.oxidation_states[0]
+    else:
+        raise ValueError(f"No oxidation state for element {symbol}")
+
 df = pd.read_csv("data/DS2.csv")
 
 delVs = []
@@ -47,7 +55,6 @@ speEs = []
 
 for row in tqdm(df.itertuples(index=False), desc="Calculating Energies", total=len(df)):
     metals = row.active_metals.split("|") if row.active_metals else []
-    n = row.m_count_diff
 
     MM_host = Composition(row.discharged_formula).weight
 
@@ -58,11 +65,12 @@ for row in tqdm(df.itertuples(index=False), desc="Calculating Energies", total=l
         continue
 
     M = metals[0]
+    n = row.m_count_diff * valence(M)
 
     E_charged = row.charged_energy_per_atom * Composition(row.charged_formula).num_atoms
     E_discharged = row.discharged_energy_per_atom * Composition(row.discharged_formula).num_atoms
 
-    delV = - (E_charged - E_discharged + n * MU[M]) / n   # Volt
+    delV = - (E_charged - E_discharged - n * MU[M]) / n   # Volt
     speC = (n * FARADAY * 1000) / (3600 * MM_host)        # mAh / g
     speE = speC * delV                                    # mWh / g
 
