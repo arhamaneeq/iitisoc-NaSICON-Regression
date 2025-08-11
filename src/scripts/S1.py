@@ -14,7 +14,7 @@ materials = []
 FIELDS = [
     "material_id", # "symmetry", "nsites", #"structure",
     "composition_reduced", "energy_above_hull", "energy_per_atom", # "volume", # "elements", 
-    "is_stable", #"structure.dimensionality"
+    "is_stable", #"dimensionality", #"structure.dimensionality"
 ]
 
 materials = []
@@ -42,7 +42,8 @@ df = pd.DataFrame([{
     "energy": m.energy_per_atom,
     #"volume": m.volume,
     #"is_stable": m.is_stable,
-} for m in materials if (m.is_stable or m.energy_above_hull < 0.2)]).reset_index(drop=True)
+    #"dimensionality": m.dimensionality,
+} for m in materials if (m.is_stable or m.energy_above_hull < 0.05)]).reset_index(drop=True)
 
 
 # df.to_pickle("data/NaSICON_Dataset_14.pkl")
