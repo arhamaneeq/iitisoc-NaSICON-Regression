@@ -72,7 +72,7 @@ for framework, entries in tqdm(groups.items(), desc="Pairing Frameworks"):
 
         _, dM = getMetals(f1, f2_scaled_str, M)
 
-        if m1 != m2_scaled: # and e1 == e2:
+        if m1 != m2_scaled and (m2_scaled - m1 < 10): # and e1 == e2:
             pairs.append({
                 "framework": framework,
                 "charged_id": mid2,
