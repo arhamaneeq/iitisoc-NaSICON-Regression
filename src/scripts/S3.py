@@ -13,7 +13,7 @@ API_KEY = secrets["materials_project"]["api_key"]
 
 FARADAY = 96485.33212       # Coulumbs (1 Na * QE)
 QE      = 1.60218e-19       # Coulombs
-MU = {                      # 
+MU = {                      # eV/atom (chemical potentials)
     "Li": -1.90,
     "Na": -1.14,
     "K": -1.00,
@@ -55,24 +55,41 @@ speEs = []
 
 for row in tqdm(df.itertuples(index=False), desc="Calculating Energies", total=len(df)):
     metals = row.active_metals.split("|") if row.active_metals else []
-
     MM_host = Composition(row.discharged_formula).weight
 
-    if len(metals) != 1 or metals[0] not in MU:
+    if not metals:
         delVs.append(None)
         speCs.append(None)
         speEs.append(None)
         continue
 
-    M = metals[0]
-    n = row.m_count_diff * valence(M)
+    per_metal_diff = row.m_count_diff / len(metals) if len(metals) > 0 else 0
+
+    total_n = 0
+    total_mu_term = 0
+    for m in metals:
+        n_metal = per_metal_diff * valence(m)
+        total_n += n_metal
+        total_mu_term += n_metal * MU[m]
+
+    if total_n == 0:
+        delVs.append(None)
+        speCs.append(None)
+        speEs.append(None)
+        continue
 
     E_charged = row.charged_energy_total_scaled
     E_discharged = row.discharged_energy_total
 
-    delV = - (E_charged - E_discharged - n * MU[M]) / n   # Volt
-    speC = (n * FARADAY * 1000) / (3600 * MM_host)        # mAh / g
+    delV = - (E_charged - E_discharged - total_mu_term) / total_n
+    speC = (total_n * FARADAY * 1000) / (3600 * MM_host)  # mAh / g
     speE = speC * delV                                    # mWh / g
+
+    if abs(delV) > 10:
+        delVs.append(None)
+        speCs.append(None)
+        speEs.append(None)
+        continue 
 
     delVs.append(delV)
     speCs.append(speC)
